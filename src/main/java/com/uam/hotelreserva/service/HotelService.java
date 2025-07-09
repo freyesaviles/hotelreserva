@@ -1,42 +1,49 @@
 package com.uam.hotelreserva.service;
 
-import com.uam.hotelreserva.exception.ResourceNotFoundException;
-import com.uam.hotelreserva.model.Hotel;
+import com.uam.hotelreserva.dto.HabitacionDto;
+import com.uam.hotelreserva.dto.HotelDto;
+import com.uam.hotelreserva.entity.Habitacion;
+import com.uam.hotelreserva.entity.Hotel;
+import com.uam.hotelreserva.repository.HabitacionRepository;
 import com.uam.hotelreserva.repository.HotelRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class HotelService {
 
-    @Autowired
-    private HotelRepository hotelRepository;
+    private final HotelRepository hotelRepository;
+    private final HabitacionRepository habitacionRepository;
 
-    public List<Hotel> listarTodos() {
-        return hotelRepository.findAll();
+    public HotelService(HotelRepository hotelRepository, HabitacionRepository habitacionRepository) {
+        this.hotelRepository = hotelRepository;
+        this.habitacionRepository = habitacionRepository;
     }
 
-    public Hotel obtenerPorId(Long id) {
-        return hotelRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Hotel no encontrado con ID: " + id));
+    public List<HotelDto> getAllHotels() {
+        return hotelRepository.findAll()
+                .stream()
+                .map(hotel -> {
+                    HotelDto dto = new HotelDto();
+                    dto.id = hotel.getId();
+                    dto.nombre = hotel.getNombre();
+                    dto.direccion = hotel.getDireccion();
+                    return dto;
+                })
+                .collect(Collectors.toList());
     }
 
-    public Hotel guardar(Hotel hotel) {
-        return hotelRepository.save(hotel);
-    }
-
-    public Hotel actualizar(Long id, Hotel hotelDetalles) {
-        Hotel hotel = obtenerPorId(id);
-        hotel.setNombre(hotelDetalles.getNombre());
-        hotel.setDireccion(hotelDetalles.getDireccion());
-        hotel.setCiudad(hotelDetalles.getCiudad());
-        return hotelRepository.save(hotel);
-    }
-
-    public void eliminar(Long id) {
-        Hotel hotel = obtenerPorId(id);
-        hotelRepository.delete(hotel);
+    public List<HabitacionDto> getHabitacionesByHotelId(Long hotelId) {
+        List<Habitacion> habitaciones = habitacionRepository.findByHotelId(hotelId);
+        return habitaciones.stream().map(habitacion -> {
+            HabitacionDto dto = new HabitacionDto();
+            dto.id = habitacion.getId();
+            dto.tipo = habitacion.getTipo();
+            dto.precio = habitacion.getPrecio();
+            dto.disponible = habitacion.isDisponible();
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

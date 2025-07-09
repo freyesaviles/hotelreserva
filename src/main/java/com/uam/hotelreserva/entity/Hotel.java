@@ -1,19 +1,21 @@
-package com.uam.hotelreserva.model;
+package com.uam.hotelreserva.entity;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 public class Hotel {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nombre;
     private String direccion;
-    private String ciudad;
 
-    // Getters y Setters
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL)
+    private List<Habitacion> habitaciones;
+
+    // Getters y setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -23,6 +25,6 @@ public class Hotel {
     public String getDireccion() { return direccion; }
     public void setDireccion(String direccion) { this.direccion = direccion; }
 
-    public String getCiudad() { return ciudad; }
-    public void setCiudad(String ciudad) { this.ciudad = ciudad; }
+    public List<Habitacion> getHabitaciones() { return habitaciones; }
+    public void setHabitaciones(List<Habitacion> habitaciones) { this.habitaciones = habitaciones; }
 }

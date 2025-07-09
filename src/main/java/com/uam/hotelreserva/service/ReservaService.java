@@ -1,43 +1,36 @@
 package com.uam.hotelreserva.service;
 
-import com.uam.hotelreserva.exception.ResourceNotFoundException;
-import com.uam.hotelreserva.model.Reserva;
+import com.uam.hotelreserva.dto.ReservaDto;
+import com.uam.hotelreserva.entity.Habitacion;
+import com.uam.hotelreserva.entity.Reserva;
+import com.uam.hotelreserva.repository.HabitacionRepository;
 import com.uam.hotelreserva.repository.ReservaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.LocalDate;
 
 @Service
 public class ReservaService {
 
-    @Autowired
-    private ReservaRepository reservaRepository;
+    private final ReservaRepository reservaRepository;
+    private final HabitacionRepository habitacionRepository;
 
-    public List<Reserva> listarTodas() {
-        return reservaRepository.findAll();
+    public ReservaService(ReservaRepository reservaRepository, HabitacionRepository habitacionRepository) {
+        this.reservaRepository = reservaRepository;
+        this.habitacionRepository = habitacionRepository;
     }
 
-    public Reserva obtenerPorId(Long id) {
-        return reservaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Reserva no encontrada con ID: " + id));
-    }
+    public void crearReserva(ReservaDto dto) {
+        Habitacion habitacion = habitacionRepository.findById(dto.habitacionId)
+                .orElseThrow(() -> new RuntimeException("Habitación no encontrada"));
 
-    public Reserva guardar(Reserva reserva) {
-        return reservaRepository.save(reserva);
-    }
+        Reserva reserva = new Reserva();
+        reserva.setHabitacion(habitacion);
+        reserva.setNombreCliente(dto.nombreCliente);
+        reserva.setCorreoCliente(dto.correoCliente);
+        reserva.setFechaInicio(LocalDate.parse(dto.fechaInicio));
+        reserva.setFechaFin(LocalDate.parse(dto.fechaFin));
 
-    public Reserva actualizar(Long id, Reserva datos) {
-        Reserva reserva = obtenerPorId(id);
-        reserva.setFechaInicio(datos.getFechaInicio());
-        reserva.setFechaFin(datos.getFechaFin());
-        reserva.setUsuario(datos.getUsuario());
-        reserva.setHabitacion(datos.getHabitacion());
-        return reservaRepository.save(reserva);
-    }
-
-    public void eliminar(Long id) {
-        Reserva reserva = obtenerPorId(id);
-        reservaRepository.delete(reserva);
+        reservaRepository.save(reserva);
     }
 }
